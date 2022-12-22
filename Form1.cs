@@ -13,9 +13,17 @@ namespace aimless_et
 
     public partial class Form1 : Form
     {
+        /// <summary>
+        /// Used for custom form template to drag form on mouse down
+        /// </summary>
         private bool dragging = false;
         private Point dragCursorPoint;
         private Point dragFormPoint;
+
+        /// <summary>
+        /// Access camera specs DB to use in listview
+        /// Tooltips DB for helpful hints.
+        /// </summary>
         CameraDb cameraDb = new CameraDb();
         Descriptions descriptions = new Descriptions();
         public Form1()
@@ -37,7 +45,11 @@ namespace aimless_et
                 column.Width = -2;
             }
         }
-
+        /// <summary>
+        /// Drag form on mouse down from titlebar.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void panel1_MouseDown(object sender, MouseEventArgs e)
         {
             dragging = true;
@@ -45,6 +57,11 @@ namespace aimless_et
             dragFormPoint = this.Location;
         }
 
+        /// <summary>
+        /// Move custom title bar within panel
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void panel1_MouseMove(object sender, MouseEventArgs e)
         {
             if (dragging)
@@ -66,6 +83,11 @@ namespace aimless_et
 
         public List<(string, string, string, string, string, string)> Camera_Data_Filter;
 
+        /// <summary>
+        /// Filter Camera spec data in listview.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void txbFilter_TextChanged(object sender, EventArgs e)
         {
             lstCameraSensors.Items.Clear();
@@ -85,6 +107,11 @@ namespace aimless_et
 
         }
 
+        /// <summary>
+        /// Show tooltips in respect to help button clicked.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void tipRule_Click(object sender, EventArgs e)
         {
             lblDescriptionTitle.Text = descriptions.Tooltips[0].Item1;
@@ -121,6 +148,12 @@ namespace aimless_et
             lblDescription.Text = descriptions.Tooltips[5].Item2;
         }
 
+        /// <summary>
+        /// Calculate pixel pitch
+        /// Sensor Width / Mac Image Width * 1000 = Pixel Pitch
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ctxmiAddPitch_Click(object sender, EventArgs e)
         {
             float sWidth = float.Parse(lstCameraSensors.SelectedItems[0].SubItems[2].Text);
@@ -128,11 +161,22 @@ namespace aimless_et
             tbxPixelPitch.Text = GetPixelPitch(sWidth, mWidth).ToString("#.##");
         }
 
+        /// <summary>
+        /// Formula to calculate pixel pitch
+        /// </summary>
+        /// <param name="_sWidth"></param>
+        /// <param name="_mWidth"></param>
+        /// <returns></returns>
         public float GetPixelPitch(float _sWidth, int _mWidth)
         {
             return (_sWidth / _mWidth) * 1000;
         }
 
+        /// <summary>
+        /// Data validation, is it present? Is returned datatype valid?
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
         public bool IsValuePresent(string text)
         {
             if (string.IsNullOrEmpty(text))
