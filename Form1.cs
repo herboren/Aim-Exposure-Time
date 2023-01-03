@@ -26,10 +26,13 @@ namespace aimless_et
         /// </summary>
         CameraDb cameraDb = new CameraDb();
         Descriptions descriptions = new Descriptions();
+        ExposureFormulas formulas = new ExposureFormulas();
         public Form1()
         {
             InitializeComponent();
 
+
+            // Fill camera db listview object
             foreach (var camera in cameraDb.Camera_Data)
             {
                 ListViewItem lvi = lstCameraSensors.Items.Add(camera.Item1);
@@ -40,11 +43,13 @@ namespace aimless_et
                 lvi.SubItems.Add(camera.Item6);
             }
 
+            // Resize listview column widths to fit
             foreach (ColumnHeader column in lstCameraSensors.Columns)
             {
                 column.Width = -2;
             }
         }
+
         /// <summary>
         /// Drag form on mouse down from titlebar.
         /// </summary>
@@ -76,78 +81,6 @@ namespace aimless_et
             dragging = false;
         }
 
-        private void label18_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
-
-        public List<(string, string, string, string, string, string)> Camera_Data_Filter;
-
-        /// <summary>
-        /// Filter Camera spec data in listview.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void txbFilter_TextChanged(object sender, EventArgs e)
-        {
-            lstCameraSensors.Items.Clear();
-
-            foreach (var camera in cameraDb.Camera_Data)
-            {
-                if (camera.Item2.ToLower().Contains(txbFilter.Text.ToLower()))
-                {
-                    ListViewItem lvi = lstCameraSensors.Items.Add(camera.Item1);
-                    lvi.SubItems.Add(camera.Item2);
-                    lvi.SubItems.Add(camera.Item3);
-                    lvi.SubItems.Add(camera.Item4);
-                    lvi.SubItems.Add(camera.Item5);
-                    lvi.SubItems.Add(camera.Item6);
-                }
-            }
-
-        }
-
-        /// <summary>
-        /// Show tooltips in respect to help button clicked.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void tipRule_Click(object sender, EventArgs e)
-        {
-            lblDescriptionTitle.Text = descriptions.Tooltips[0].Item1;
-            lblDescription.Text = descriptions.Tooltips[0].Item2;
-        }
-
-        private void tipSensor_Click(object sender, EventArgs e)
-        {
-            lblDescriptionTitle.Text = descriptions.Tooltips[1].Item1;
-            lblDescription.Text = descriptions.Tooltips[1].Item2;
-        }
-
-        private void tipFstop_Click(object sender, EventArgs e)
-        {
-            lblDescriptionTitle.Text = descriptions.Tooltips[2].Item1;
-            lblDescription.Text = descriptions.Tooltips[2].Item2;
-        }
-
-        private void tipPitch_Click(object sender, EventArgs e)
-        {
-            lblDescriptionTitle.Text = descriptions.Tooltips[3].Item1;
-            lblDescription.Text = descriptions.Tooltips[3].Item2;
-        }
-
-        private void tipFocal_Click(object sender, EventArgs e)
-        {
-            lblDescriptionTitle.Text = descriptions.Tooltips[4].Item1;
-            lblDescription.Text = descriptions.Tooltips[4].Item2;
-        }
-
-        private void tipDeclination_Click(object sender, EventArgs e)
-        {
-            lblDescriptionTitle.Text = descriptions.Tooltips[5].Item1;
-            lblDescription.Text = descriptions.Tooltips[5].Item2;
-        }
-
         /// <summary>
         /// Calculate pixel pitch
         /// Sensor Width / Mac Image Width * 1000 = Pixel Pitch
@@ -172,33 +105,171 @@ namespace aimless_et
             return (_sWidth / _mWidth) * 1000;
         }
 
-        /// <summary>
-        /// Data validation, is it present? Is returned datatype valid?
-        /// </summary>
-        /// <param name="text"></param>
-        /// <returns></returns>
-        public bool IsValuePresent(string text)
+        // Update label(s)
+        private void tbxPixelPitch_TextChanged(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(text))
-                return true;
+            formulas.Pitch = formulas.IsFloat(tbxPixelPitch.Text);
 
-            return false;
+            if (tbxFocalLength.Text != string.Empty)
+                lblPlate.Text = $"{formulas.PlateExposureTime().ToString("#.####")}/s";
         }
 
-        public bool IsDigit(string text)
+        // Update label(s)
+        private void tbxFocalLength_TextChanged(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(text))
-                return int.TryParse(text, out int i);
+            formulas.FocalLength = formulas.IsNumeric(tbxFocalLength.Text);
 
-            return false;
+            if (tbxPixelPitch.Text != string.Empty)
+            {
+                lblPlate.Text = $"{formulas.PlateExposureTime().ToString("#.####")}/s";
+                lblSimpNpf.Text = $"{formulas.SimplifiedAperturePixelFocal().ToString("#.####")}/s";
+                lblFourCrop.Text = $"{formulas.FourCropExposureTime().ToString("#.####")}/s";
+            }
         }
 
-        public bool IsDecimal(string text)
+        // Update label(s)
+        private void tbxDeclination_TextChanged(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(text))
-                return float.TryParse(text, out float fl);
+            formulas.Declination = formulas.IsNumeric(tbxDeclination.Text);
+
+            if (tbxPixelPitch.Text != string.Empty && tbxFocalLength.Text != string.Empty)
+                lblPlatePlus.Text = $"{formulas.PlatePlusExposureTime().ToString("#.####")}/s";
+        }
+
+        private void lbPitchTooltip_MouseEnter(object sender, EventArgs e)
+        {
+            ttDescriptions.SetToolTip(this.lbPitchTooltip, "Pixel size/pitch of an individual pixel on the camera sensor.\n\n" +
+                "To calculate pixel pitch:\nPixel Pitch = Sensor Width / Max Image Width * 1000");
+        }
+
+        private void btnlblPlate_MouseEnter(object sender, EventArgs e)
+        {
+            ttDescriptions.SetToolTip(this.btnlblPlate, "The plate scale of a telescope connects the angular separation of an\n" +
+                "object with the linear separation of its image at the focal plane. The plate\n" +
+                "scale of a telescope can be described as the number of degrees or arcminutes\n" +
+                "or arcseconds, corresponding to a number of inches, or centimeters, or\n" +
+                "millimeters (etc.) at the focal plane (where an image of an object is \"seen\")\n" +
+                "of a telescope. Each telescope has its own plate scale");
+        }
+
+        // Update label(s)
+        private void lsbRule_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            formulas.RuleInt = lsbRule.SelectedIndex+1;
+            formulas.Rule = formulas.IsNumeric(lsbRule.SelectedItem.ToString());
             
-            return false;
+            if (tbxPixelPitch.Text != string.Empty &&
+                tbxFocalLength.Text != string.Empty &&
+                tbxFSstop.Text != string.Empty &&
+                tbxDeclination.Text != string.Empty &&
+                lsbSensor.SelectedIndex != -1)
+            {
+                lblNpf.Text = $"{formulas.AperturePixelFocal().ToString("#.####")}/s";
+                lblSimpNpf.Text = $"{formulas.SimplifiedAperturePixelFocal().ToString("#.####")}/s";
+                lblRule.Text = $"{formulas.RuleExposureTime().ToString("#.####")}/s";
+                lblFourCrop.Text = $"{formulas.FourCropExposureTime().ToString("#.####")}/s";
+            }
+
+        }
+
+        // Update label(s)
+        private void tbxFSstop_TextChanged(object sender, EventArgs e)
+        {
+            formulas.Aperture = formulas.IsFloat(tbxFSstop.Text);
+
+            if (tbxPixelPitch.Text != string.Empty &&
+                tbxFocalLength.Text != string.Empty &&
+                lsbRule.SelectedIndex != -1 &&
+                tbxDeclination.Text != string.Empty)
+            {
+                lblNpf.Text = $"{formulas.AperturePixelFocal().ToString("#.####")}/s";
+                lblSimpNpf.Text = $"{formulas.SimplifiedAperturePixelFocal().ToString("#.####")}/s";
+            }
+        }
+
+
+        // Close program
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+
+        // Update label(s)
+        private void lsbSensor_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            formulas.SensorInt = lsbSensor.SelectedIndex;
+
+            if (tbxFocalLength.Text != string.Empty &&
+                lsbRule.SelectedIndex != -1)
+            {
+                lblRule.Text = $"{formulas.RuleExposureTime().ToString("#.####")}/s";
+                lblFourCrop.Text = $"{formulas.FourCropExposureTime().ToString("#.####")}/s";
+            }
+        }
+
+        private void tbxFilter_TextChanged(object sender, EventArgs e)
+        {
+            // Create new list of filtered data
+            List<(string, string, string, string, string, string)> newList =
+                   new List<(string, string, string, string, string, string)>();
+
+            // Store data first, draw later, improves performance.
+            foreach (var camera in cameraDb.Camera_Data)
+            {
+                if (camera.Item1.ToLower().Contains(tbxFilter.Text.ToLower()) || camera.Item2.ToLower().Contains(tbxFilter.Text.ToLower()))
+                {
+                    newList.Add(camera);
+                }
+            }
+
+            // Clear list before redrawing
+            lstCameraSensors.Items.Clear();
+
+            foreach (var camera in newList)
+            {
+                ListViewItem li = lstCameraSensors.Items.Add(camera.Item1);
+                li.SubItems.Add(camera.Item2);
+                li.SubItems.Add(camera.Item3);
+                li.SubItems.Add(camera.Item4);
+                li.SubItems.Add(camera.Item5);
+                li.SubItems.Add(camera.Item6);
+            }
+        }
+
+        /// <summary>
+        /// Highlights text when tabchanged. Easy editing.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tbxPixelPitch_Enter(object sender, EventArgs e)
+        {
+            tbxPixelPitch.SelectionStart = 0;
+            tbxPixelPitch.SelectionLength = tbxPixelPitch.Text.Length;
+        }
+
+        private void tbxFocalLength_Enter(object sender, EventArgs e)
+        {
+            tbxFocalLength.SelectionStart = 0;
+            tbxFocalLength.SelectionLength = tbxFocalLength.Text.Length;
+        }
+
+        private void tbxFSstop_Enter(object sender, EventArgs e)
+        {
+            tbxFSstop.SelectionStart = 0;
+            tbxFSstop.SelectionLength = tbxFSstop.Text.Length;
+        }
+
+        private void tbxDeclination_Enter(object sender, EventArgs e)
+        {
+            tbxDeclination.SelectionStart = 0;
+            tbxDeclination.SelectionLength = tbxDeclination.Text.Length;
+        }
+
+        private void tbxFilter_Enter(object sender, EventArgs e)
+        {
+            tbxFilter.SelectionStart = 0;
+            tbxFilter.SelectionLength = tbxFilter.Text.Length;
         }
     }
 }
