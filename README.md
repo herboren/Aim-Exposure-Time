@@ -1,5 +1,5 @@
 # AimlessExposureTime
-Calculates exposure time need for best image quality in Astrophotography.
+Calculates exposure time need for best image quality in Astrophotography. The techniques can be used to calculate shutter timer for Astrophotography.
 
 ![g5ImgV20wu](https://user-images.githubusercontent.com/987794/210322738-048d00bf-9720-4041-8554-f09201763489.png)
 
