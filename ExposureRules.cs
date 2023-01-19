@@ -22,27 +22,6 @@ namespace aimless_et
         public float Aperture { get; set; }
         public int SensorInt { get; set; }
 
-
-        /// <summary>
-        /// The plate scale of a telescope connects the angular separation of an
-        /// object with the linear separation of its image at the focal plane.
-        /// 
-        /// The plate scale of a telescope can be described as the number of degrees
-        /// or arcminutes or arcseconds, corresponding to a number of inches, or
-        /// centimeters, or millimeters (etc.) at the focal plane (where an image
-        /// of an object is "seen") of a telescope. Each telescope has its own plate scale,
-        /// 
-        /// This calculation will result in stars having exactly 1 pixel trail.
-        /// 
-        /// 
-        /// arcseconds = 206265
-        /// round = 1000
-        ///
-        /// Stars on the celestial equator move 15 arc-seconds per time second
-        /// acr_s_ps = 15
-        /// 
-        /// shutterspeed = (arcseconds * (pixelSize / round) / focalLength) / acr_s_ps;
-        /// 
         /// Returns floated seconds
         /// </summary>
         /// <param name="rule"></param>
@@ -56,10 +35,6 @@ namespace aimless_et
         /// <summary>
         /// ** For stars not on the celestial equator, the exposure time will be divided by
         /// the cosine of the declination to get the same drift amount in pixels:
-        /// 
-        /// 1 radian = 180°
-        /// 2 radians = 360°
-        /// 1 degree = 180si (International Unit SI = radians)
         /// Formula: 
         /// </summary>
         /// <returns></returns>
